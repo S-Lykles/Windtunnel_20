@@ -90,17 +90,17 @@ def plot_2d_cp(Cpu, Cpl, alpha, CL, CD, V):
     ax = fig.add_subplot(111)
     # ax.fill_between(x, y_up, y_low, alpha=0.3)
     highlight_region(ax, x, y_up, y_low, p_color, s_color)
-    ax.scatter(*Cpu, c=s_color, s=4)
-    ax.plot(*Cpu, c=s_color, lw=0.8, ls='-', label='upper surface')
-    ax.scatter(*Cpl, c=p_color, s=4)
-    ax.plot(*Cpl, c=p_color, lw=0.8, ls='-', label='lower surface')
+    # ax.scatter(*Cpu, c=s_color, s=4)
+    ax.plot(*Cpu, c=s_color, lw=1, ls='-', label='upper surface', marker='o', markersize=2)
+    # ax.scatter(*Cpl, c=p_color, s=4)
+    ax.plot(*Cpl, c=p_color, lw=1, ls='-', label='lower surface', marker='o', markersize=2)
     ax.axhline(0, c='k', ls='-', lw=0.5)
     ax.axvline(0, c='k', ls='-', lw=0.5)
     ax.invert_yaxis()
     ax.legend()
     ax.grid(True, alpha=1, lw=0.5, ls='--')
-    ax.set_xlabel('% of chord')
-    ax.set_ylabel('$C_p$')
+    ax.set_xlabel('x/c [%]')
+    ax.set_ylabel('$C_p$ [-]')
     ax.set_title(f'$\\alpha = {alpha} \degree$, $C_l = {CL}$, $C_d = {CD:2.2e}$, $V = {V}$ [m/s]')
     fig.set_dpi(120)
 
@@ -108,7 +108,7 @@ def plot_2d_cp(Cpu, Cpl, alpha, CL, CD, V):
 
 
 # %%
-for idx in data_2d.Alpha.index[1:]:
+for idx in data_2d.Alpha.index[10:11]:
     alpha = data_2d.loc[idx, 'Alpha']
     V = data_2d.loc[idx, 'V']
     Cl = data_2d.loc[idx, 'Cl']
