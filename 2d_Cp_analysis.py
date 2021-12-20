@@ -13,11 +13,11 @@ p = Path('Numerical data 2d')
 # data is sepperated by tabs, of skipinitialspace is not set to True all the collumns will have 
 # spaces in them, for example '     Alpha' instead of 'Alpha', same for the indices.
 # indices are strings, so if you want to select by runnumber corr_data.loc['1']
-corr_data = pd.read_csv(p/'corr_test.txt', sep='\t', index_col=0, skipinitialspace=True)
-corr_data.rename({'/': 'info'}, inplace=True)
-corr_data.loc['info', 'Alpha'] = np.nan
-corr_data['Alpha'] = corr_data['Alpha'].astype('float64')
-columns = corr_data.columns
+data_2d = pd.read_csv(p/'corr_test.txt', sep='\t', index_col=0, skipinitialspace=True)
+data_2d.rename({'/': 'info'}, inplace=True)
+data_2d.loc['info', 'Alpha'] = np.nan
+data_2d['Alpha'] = data_2d['Alpha'].astype('float64')
+columns = data_2d.columns
 
 Cpu_idx = [column for column in columns if 'Cpu' in column]
 Cpl_idx = [column for column in columns if 'Cpl' in column]
@@ -25,13 +25,9 @@ Cpl_idx = [column for column in columns if 'Cpl' in column]
 # Clu_idx = columns.map(lambda idx: True if 'Clu' in idx else False)
 
 # %%
-Cpu = corr_data[['Alpha']+Cpu_idx]
-Cpl = corr_data[['Alpha']+Cpl_idx]
+Cpu = data_2d[['Alpha']+Cpu_idx]
+Cpl = data_2d[['Alpha']+Cpl_idx]
 
-# %%
-z, y, x = Cpu.loc['1', Cpu.columns[1:]], Cpu.loc['1', 'Alpha'], Cpu.loc['info', Cpu.columns[1:]]
-# %%
-y = np.broadcast_to(y, np.shape(z))
 # %%
 def Cp_3d(Cp_pd):
     x = Cp_pd.loc['info', Cp_pd.columns[1:]]
@@ -79,9 +75,11 @@ def highlight_region(ax, x, y1, y2, color1, color2):
         color = color2
     ax.fill_between(x_lst, y1_lst, y2_lst, color=color, alpha=0.3)
 
-def plot_2d_cp(Cpu, Cpl, alpha):
+def plot_2d_cp(Cpu, Cpl, alpha, CL, CD, V):
     """
-    Cpu and Cpl are tuples of (x, Cp), alpha is angle of attack in degrees.
+    Cpu and Cpl are tuples of (x, Cp) where x and Cp are some kind of list/array,
+    x should be in percentage of chord 
+    alpha is angle of attack in degrees.
     """
     p_color = 'coral'
     s_color = 'deepskyblue'
@@ -103,15 +101,19 @@ def plot_2d_cp(Cpu, Cpl, alpha):
     ax.grid(True, alpha=1, lw=0.5, ls='--')
     ax.set_xlabel('% of chord')
     ax.set_ylabel('$C_p$')
-    ax.set_title(f'$\\alpha = {alpha} \degree$')
+    ax.set_title(f'$\\alpha = {alpha} \degree$, $C_l = {CL}$, $C_d = {CD:2.2e}$, $V = {V}$ [m/s]')
     fig.set_dpi(120)
 
 # plot_3d_cp(Cpu)
 
 
 # %%
-for alpha in corr_data.Alpha[1:2]:
-    # print(Cp_2d(Cpu, alpha)[1][0],Cp_2d(Cpl, alpha)[1][0])
-    plot_2d_cp(Cp_2d(Cpu, alpha), Cp_2d(Cpl, alpha), alpha)
+for idx in data_2d.Alpha.index[1:]:
+    alpha = data_2d.loc[idx, 'Alpha']
+    V = data_2d.loc[idx, 'V']
+    Cl = data_2d.loc[idx, 'Cl']
+    Cd = data_2d.loc[idx, 'Cd']
+    plot_2d_cp(Cp_2d(Cpu, alpha), Cp_2d(Cpl, alpha), alpha, float(Cl), float(Cd), float(V))
     
+
 # %%
