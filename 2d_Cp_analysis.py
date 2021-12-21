@@ -1,5 +1,6 @@
 #%%
 import numpy as np
+from numpy.lib.npyio import save
 import pandas as pd
 from pathlib import Path
 import matplotlib as mpl
@@ -7,7 +8,7 @@ from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from scipy.interpolate import interp1d
 # %%
-p = Path('Numerical data 2d')
+p = Path('Experimental data 2d')
 
 # %%
 # data is sepperated by tabs, of skipinitialspace is not set to True all the collumns will have 
@@ -28,6 +29,11 @@ Cpl_idx = [column for column in columns if 'Cpl' in column]
 Cpu = data_2d[['Alpha']+Cpu_idx]
 Cpl = data_2d[['Alpha']+Cpl_idx]
 
+style_2d = dict(marker='o', linestyle='-', markersize=5,
+                           color='black',
+                           markerfacecolor='tab:green',
+                           markerfacecoloralt='red',
+                           markeredgecolor='black')
 # %%
 def Cp_3d(Cp_pd):
     x = Cp_pd.loc['info', Cp_pd.columns[1:]]
@@ -98,22 +104,72 @@ def plot_2d_cp(Cpu, Cpl, alpha, CL, CD, V):
     ax.axvline(0, c='k', ls='-', lw=0.5)
     ax.invert_yaxis()
     ax.legend()
-    ax.grid(True, alpha=1, lw=0.5, ls='--')
+    ax.grid(True, which='major', alpha=1, lw=0.5, ls='-')
+    ax.minorticks_on()
+    ax.grid(True, which='minor', alpha=0.5, lw=0.3, ls='-')
     ax.set_xlabel('x/c [%]')
     ax.set_ylabel('$C_p$ [-]')
-    ax.set_title(f'$\\alpha = {alpha} \degree$, $C_l = {CL}$, $C_d = {CD:2.2e}$, $V = {V}$ [m/s]')
+    # ax.set_title(f'$\\alpha = {alpha} \degree$, $C_l = {CL}$, $C_d = {CD:2.2e}$, $V = {V}$ [m/s]')
+    # ax.set_title(f'$\\alpha = {alpha} \degree$')
     fig.set_dpi(120)
 
 # plot_3d_cp(Cpu)
 
 
 # %%
-for idx in data_2d.Alpha.index[10:11]:
+for idx in data_2d.Alpha.index[4:17:4]:
     alpha = data_2d.loc[idx, 'Alpha']
     V = data_2d.loc[idx, 'V']
     Cl = data_2d.loc[idx, 'Cl']
     Cd = data_2d.loc[idx, 'Cd']
     plot_2d_cp(Cp_2d(Cpu, alpha), Cp_2d(Cpl, alpha), alpha, float(Cl), float(Cd), float(V))
+    plt.savefig(f'PLots/2d_Cp_plots/2d_Cp_{alpha:.3}.pdf')
     
+
+# %%
+def plot_Cl_a(savefig=False):
+    fig = plt.figure(figsize=(8,5))
+    ax = fig.add_subplot(111)
+    fig.set_dpi(120)
+    ax.grid(True, which='major', alpha=1, lw=0.5, ls='-')
+    ax.minorticks_on()
+    ax.grid(True, which='minor', alpha=0.5, lw=0.3, ls='-')
+    ax.axhline(0, c='k', ls='-', lw=0.7)
+    ax.axvline(0, c='k', ls='-', lw=0.7)
+    ax.set_xlabel('$\\alpha$ [deg]')
+    ax.set_ylabel('$C_l$ [-]')
+    
+    alpha = data_2d.Alpha[1:].astype('float64')
+    Cl = data_2d.Cl[1:].astype('float64')
+    ax.plot(alpha, Cl, **style_2d, label='2D experimental')
+    ax.legend()
+    if savefig:
+        fig.savefig('Plots/lift_curve_2d.pdf')
+
+def plot_polar(savefig=False):
+    fig = plt.figure(figsize=(8,5))
+    ax = fig.add_subplot(111)
+    fig.set_dpi(120)
+    ax.grid(True, which='major', alpha=1, lw=0.5, ls='-')
+    ax.minorticks_on()
+    ax.grid(True, which='minor', alpha=0.5, lw=0.3, ls='-')
+    ax.axhline(0, c='k', ls='-', lw=0.7)
+    ax.axvline(0, c='k', ls='-', lw=0.7)
+    ax.set_xlabel('$C_d$ [-]')
+    ax.set_ylabel('$C_l$ [-]')
+    ax.set_xlim([0, 0.07])
+    ax.set_ylim([-0.3, 1.05])
+    
+    Cd = data_2d.Cd[1:].astype('float64')
+    Cl = data_2d.Cl[1:].astype('float64')
+    ax.plot(Cd, Cl, **style_2d, label='2D experimental')
+    ax.legend(loc='lower right')
+    if savefig:
+        fig.savefig('Plots/drag_polar_2d.pdf')
+
+# %%
+plot_Cl_a(True)
+# %%
+plot_polar(True)
 
 # %%

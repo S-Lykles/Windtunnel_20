@@ -29,6 +29,7 @@ data_2d.rename({'/': 'info'}, inplace=True)
 data_2d.loc['info', 'Alpha'] = np.nan
 data_2d['Alpha'] = data_2d['Alpha'].astype('float64')
 
+AR = 5.345
 #%%
 style_2d = dict(marker='o', linestyle='-', markersize=5,
                            color='black',
@@ -37,7 +38,7 @@ style_2d = dict(marker='o', linestyle='-', markersize=5,
                            markeredgecolor='black')
 style_3d = dict(marker='v', linestyle='-', markersize=5,
                            color='black',
-                           markerfacecolor='tab:blue',
+                           markerfacecolor='tab:red',
                            markerfacecoloralt='red',
                            markeredgecolor='black')
 
@@ -56,27 +57,34 @@ def plot_Cl_a(savefig=False):
     # --3d--
     CL = data_3d.CL[1:].astype('float64')
     alpha = data_3d.Alpha[1:]
-    ax.plot(alpha, CL, **style_3d, label='3d experimental')
+    ax.plot(alpha, CL, **style_3d, label='3D experimental')
 
     n_terms = 10
-    slope, y0, r, _, _ = linregress(alpha[:n_terms], CL[:n_terms])
+    slope_3d, y0, r, _, _ = linregress(alpha[:n_terms], CL[:n_terms])
     line_terms = 20
-    CL_fit = slope * alpha[:line_terms] + y0
-    ax.plot(alpha[:line_terms], CL_fit, c='tab:blue', ls='--', label='3d regression line')
-    ax.annotate(f'$C_L = {slope:.3} \cdot \\alpha {y0:+.3} $\n $r^2 = {r**2:.4}$', (7.5, 0.35))
-    print(f'slope is {slope*180/(np.pi**2):.3} pi [1/rad]')
+    CL_fit = slope_3d * alpha[:line_terms] + y0
+    ax.plot(alpha[:line_terms], CL_fit, c='tab:red', ls='-.', label='3D regression line')
+    ax.annotate(f'$C_L = {slope_3d:.3} \cdot \\alpha {y0:+.3} $\n $r^2 = {r**2:.4}$', (7.5, 0.35))
+    print(f'3d slope is {slope_3d*180/(np.pi**2):.3} pi [1/rad]')
     # --2d--
     Cl = data_2d.Cl[1:].astype('float64')
     alpha = data_2d.Alpha[1:]
-    ax.plot(alpha, Cl, **style_2d, label='2d experimental')
+    ax.plot(alpha, Cl, **style_2d, label='2D experimental')
 
     n_terms = 10
-    slope, y0, r, _, _ = linregress(alpha[:n_terms], Cl[:n_terms])
+    slope_2d, y0, r, _, _ = linregress(alpha[:n_terms], Cl[:n_terms])
     line_terms = 20
-    CL_fit = slope * alpha[:line_terms] + y0
-    ax.plot(alpha[:line_terms], CL_fit, c='tab:green', ls='--', label='2d regression line')
-    ax.annotate(f'$C_l = {slope:.3} \cdot \\alpha {y0:+.3} $\n $r^2 = {r**2:.4}$', (0.53, 0.61))
-    print(f'slope is {slope*180/(np.pi**2):.3} pi [1/rad]')
+    CL_fit = slope_2d * alpha[:line_terms] + y0
+    ax.plot(alpha[:line_terms], CL_fit, c='tab:green', ls='--', label='2D regression line')
+    ax.annotate(f'$C_l = {slope_2d:.3} \cdot \\alpha {y0:+.3} $\n $r^2 = {r**2:.4}$', (0.53, 0.61))
+    print(f'2d slope is {slope_2d*180/(np.pi**2):.3} pi [1/rad]')
+    slope_2d = np.rad2deg(slope_2d)
+    slope_3d = np.rad2deg(slope_3d)
+    slope_3d_theory = slope_2d/(1+slope_2d/(np.pi*AR))
+    print(f'lifting line theory {slope_3d_theory/np.pi:.4} pi [1/rad]')
+    slope_3d_theory = slope_2d/(np.sqrt(1+(slope_2d/(np.pi*AR))**2)+slope_2d/(np.pi*AR))
+    print(f'hemold = {slope_3d_theory/np.pi:.4} pi [1/rad]')
+    print(slope_3d/slope_2d)
     ax.legend(loc='lower right')
     if savefig:
         fig.savefig('Plots/lift_curve_2d_3d.pdf')
@@ -95,11 +103,11 @@ def plot_Cd_a(savefig=False):
     # --3d--
     CD = data_3d.CD[1:].astype('float64')
     alpha = data_3d.Alpha[1:]
-    ax.plot(alpha, CD, **style_3d, label='3d experimental')
+    ax.plot(alpha, CD, **style_3d, label='3D experimental')
     # --2d--
     Cd = data_2d.Cd[1:].astype('float64')
     alpha = data_2d.Alpha[1:]
-    ax.plot(alpha, Cd, **style_2d, label='2d experimental')
+    ax.plot(alpha, Cd, **style_2d, label='2D experimental')
     ax.legend()
     if savefig:
         fig.savefig('Plots/drag_curve_2d_3d.pdf')
@@ -119,11 +127,11 @@ def plot_Cm_a(savefig=False):
     # --3d--
     CM = data_3d.Cm_p_qc[1:].astype('float64')
     alpha = data_3d.Alpha[1:]
-    ax.plot(alpha, CM, **style_3d, label='3d experimental')
+    ax.plot(alpha, CM, **style_3d, label='3D experimental')
     # --2d--
     Cm = data_2d.Cm[1:].astype('float64')
     alpha = data_2d.Alpha[1:]
-    ax.plot(alpha, Cm, **style_2d, label='2d experimental')
+    ax.plot(alpha, Cm, **style_2d, label='2D experimental')
     ax.legend()
     if savefig:
         fig.savefig('Plots/moment_curve_2d_3d.pdf')
@@ -140,26 +148,27 @@ def plot_polar(savefig=False):
     ax.set_ylabel('$C_D$, $C_d$ [-]')
     ax.set_xlabel('$C_L$, $C_l$ [-]')
     ax.set_xlim([0, 0.07])
+    ax.set_ylim([-0.3, 1.05])
     # --3d--
     CL = data_3d.CL[1:].astype('float64')
     max_alpha_3d = data_3d.Alpha[24]
     CD = data_3d.CD[1:].astype('float64')
-    ax.plot(CD, CL, **style_3d, label='3d experimental')
+    ax.plot(CD, CL, **style_3d, label='3D experimental')
 
     n_terms = 10
     p = polyfit(CL[:n_terms], CD[:n_terms], [2, 0])
     r2 = r2_score(CD[:n_terms], polyval(CL[:n_terms], p))
-    CL_fit = np.linspace(CL.min(), CL.max())
+    CL_fit = np.linspace(-CL.max(), CL.max())
     CD_fit = p[2]*CL_fit**2 + p[0]
-    fit_label = f'3d regression curve'
-    ax.plot(CD_fit, CL_fit, ls='--', c='tab:blue', label= fit_label)
+    fit_label = f'3D regression curve'
+    ax.plot(CD_fit, CL_fit, ls='--', c='tab:red', label= fit_label)
     ax.annotate(f'$C_D = {p[2]:.3} \cdot C_L^2  {p[0]:+.3} $\n $r^2 = {r2:.4}$', (0.02, 0.61))
     # --2d--
     Cl = data_2d.Cl[1:].astype('float64')
     max_alpha_2d = data_2d.Alpha[24]
     # print(max_alpha_2d)
     Cd = data_2d.Cd[1:].astype('float64')
-    ax.plot(Cd, Cl, **style_2d, label='2d experimental')
+    ax.plot(Cd, Cl, **style_2d, label='2D experimental')
     ax.legend()
     AR = 5.345
     print(f'e = {1/(p[2]*np.pi*AR):.2}')
