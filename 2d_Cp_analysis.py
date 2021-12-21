@@ -117,7 +117,7 @@ def plot_2d_cp(Cpu, Cpl, alpha, CL, CD, V):
 
 
 # %%
-for idx in data_2d.Alpha.index[4:17:4]:
+for idx in data_2d.Alpha.index[31:32]:
     alpha = data_2d.loc[idx, 'Alpha']
     V = data_2d.loc[idx, 'V']
     Cl = data_2d.loc[idx, 'Cl']
