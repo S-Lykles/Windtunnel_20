@@ -29,7 +29,7 @@ data_2d.rename({'/': 'info'}, inplace=True)
 data_2d.loc['info', 'Alpha'] = np.nan
 data_2d['Alpha'] = data_2d['Alpha'].astype('float64')
 
-AR = 5.345
+AR = 5.345 + 0.2
 #%%
 style_2d = dict(marker='o', linestyle='-', markersize=5,
                            color='black',
@@ -79,12 +79,15 @@ def plot_Cl_a(savefig=False):
     ax.annotate(f'$C_l = {slope_2d:.3} \cdot \\alpha {y0:+.3} $\n $r^2 = {r**2:.4}$', (0.53, 0.61))
     print(f'2d slope is {slope_2d*180/(np.pi**2):.3} pi [1/rad]')
     slope_2d = np.rad2deg(slope_2d)
+    print(slope_2d)
     slope_3d = np.rad2deg(slope_3d)
     slope_3d_theory = slope_2d/(1+slope_2d/(np.pi*AR))
+    print(slope_3d_theory)
     print(f'lifting line theory {slope_3d_theory/np.pi:.4} pi [1/rad]')
-    slope_3d_theory = slope_2d/(np.sqrt(1+(slope_2d/(np.pi*AR))**2)+slope_2d/(np.pi*AR))
+    # slope_3d_theory = slope_2d/(np.sqrt(1+(slope_2d/(np.pi*AR))**2)+slope_2d/(np.pi*AR))
     print(f'hemold = {slope_3d_theory/np.pi:.4} pi [1/rad]')
     print(slope_3d/slope_2d)
+    print(slope_3d_theory/slope_2d)
     ax.legend(loc='lower right')
     if savefig:
         fig.savefig('Plots/lift_curve_2d_3d.pdf')
@@ -146,7 +149,7 @@ def plot_polar(savefig=False):
     ax.axhline(0, c='k', ls='-', lw=0.7)
     ax.axvline(0, c='k', ls='-', lw=0.7)
     ax.set_ylabel('$C_D$, $C_d$ [-]')
-    ax.set_xlabel('$C_L$, $C_l$ [-]')
+    ax.set_ylabel('$C_L$, $C_l$ [-]')
     ax.set_xlim([0, 0.07])
     ax.set_ylim([-0.3, 1.05])
     # --3d--
